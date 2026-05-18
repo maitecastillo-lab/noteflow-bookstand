@@ -1,22 +1,18 @@
 import "@/global.css";
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
 import { Stack } from "expo-router";
-import { useColorScheme } from "react-native";
+import { useThemeStore } from "@/store/themeStore";
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const mode = colorScheme === "dark" ? "dark" : "light";
+  const mode = useThemeStore((state) => state.mode);
 
   return (
     <GluestackUIProvider mode={mode}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
         <Stack.Screen
           name="nueva-nota"
-          options={{
-            presentation: "modal",
-            title: "Nueva nota",
-          }}
+          options={{ presentation: "modal" }}
         />
       </Stack>
     </GluestackUIProvider>

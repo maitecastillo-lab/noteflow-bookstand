@@ -18,6 +18,7 @@ export default function TabsLayout() {
         headerTitleStyle: { color: theme.colors.text },
       }}
     >
+      {/* === TABS VISIBLES === */}
       <Tabs.Screen
         name="index"
         options={{
@@ -28,7 +29,7 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="checklists"
+        name="checklists/index"
         options={{
           title: "Tareas",
           tabBarIcon: ({ color, size }) => (
@@ -37,7 +38,7 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="ideas"
+        name="ideas/index"
         options={{
           title: "Ideas",
           tabBarIcon: ({ color, size }) => (
@@ -63,6 +64,11 @@ export default function TabsLayout() {
           ),
         }}
       />
+
+      {/* === RUTAS OCULTAS === */}
+      <Tabs.Screen name="notas/[id]" options={{ href: null }} />
+      <Tabs.Screen name="checklists/[id]" options={{ href: null }} />
+      <Tabs.Screen name="ideas/[id]" options={{ href: null }} />
     </Tabs>
   );
 }

@@ -1,41 +1,165 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Pressable } from "react-native";
 import { useNotesStore } from "@/store/notesStore";
 import { useTheme } from "@/hooks/useTheme";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function ArchivadasScreen() {
   const theme = useTheme();
-  const archivedNotes = useNotesStore((state) => state.notes.filter((n) => n.isArchived));
-  const archivedChecklists = useNotesStore((state) => state.checklists.filter((c) => c.isArchived));
-  const archivedIdeas = useNotesStore((state) => state.ideas.filter((i) => i.isArchived));
 
-  const total = archivedNotes.length + archivedChecklists.length + archivedIdeas.length;
+  // ---------------- STORE ACTIONS ----------------
+  const unarchiveNote = useNotesStore((s) => s.unarchiveNote);
+  const deleteNote = useNotesStore((s) => s.deleteNote);
+
+  const unarchiveChecklist = useNotesStore((s) => s.unarchiveChecklist);
+  const deleteChecklist = useNotesStore((s) => s.deleteChecklist);
+
+  const unarchiveIdea = useNotesStore((s) => s.unarchiveIdea);
+  const deleteIdea = useNotesStore((s) => s.deleteIdea);
+
+  // ---------------- RAW STATE (IMPORTANTE) ----------------
+  const notes = useNotesStore((s) => s.notes);
+  const checklists = useNotesStore((s) => s.checklists);
+  const ideas = useNotesStore((s) => s.ideas);
+
+  // ---------------- FILTER OUTSIDE HOOK ----------------
+  const archivedNotes = notes.filter((n) => n.isArchived);
+  const archivedChecklists = checklists.filter((c) => c.isArchived);
+  const archivedIdeas = ideas.filter((i) => i.isArchived);
+
+  const total =
+    archivedNotes.length +
+    archivedChecklists.length +
+    archivedIdeas.length;
+
+  // ---------------- UI COMPONENTS ----------------
+  const Card = ({ children }: any) => (
+    <View
+      style={{
+        backgroundColor: theme.colors.surface,
+        padding: 14,
+        borderRadius: 12,
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+      }}
+    >
+      {children}
+    </View>
+  );
+
+  const ActionBtn = ({ onPress, icon }: any) => (
+    <Pressable onPress={onPress} style={{ marginLeft: 10 }}>
+      <Ionicons name={icon} size={20} color={theme.colors.text} />
+    </Pressable>
+  );
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: theme.colors.background }} contentContainerStyle={{ padding: theme.spacing.lg }}>
-      <Text style={{ color: theme.colors.text, fontSize: theme.typography.sizes["2xl"], fontWeight: theme.typography.weights.bold, marginBottom: theme.spacing.lg }}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      contentContainerStyle={{ padding: 20 }}
+    >
+      <Text
+        style={{
+          color: theme.colors.text,
+          fontSize: 26,
+          fontWeight: "600",
+          marginBottom: 20,
+        }}
+      >
         Archivadas
       </Text>
 
       {total === 0 ? (
-        <Text style={{ color: theme.colors.textSecondary, fontSize: theme.typography.sizes.base, textAlign: "center", marginTop: theme.spacing.xl }}>
+        <Text
+          style={{
+            color: theme.colors.textSecondary,
+            textAlign: "center",
+            marginTop: 40,
+          }}
+        >
           No tienes nada archivado.
         </Text>
       ) : (
         <>
+          {/* ---------------- NOTES ---------------- */}
           {archivedNotes.map((n) => (
-            <View key={n.id} style={{ backgroundColor: theme.colors.surface, padding: theme.spacing.md, borderRadius: theme.radius.md, marginBottom: theme.spacing.sm, borderWidth: 1, borderColor: theme.colors.border }}>
-              <Text style={{ color: theme.colors.text, fontWeight: theme.typography.weights.semibold }}>📝 {n.title}</Text>
-            </View>
+            <Card key={n.id}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text style={{ color: theme.colors.text }}>
+                  📝 {n.title}
+                </Text>
+
+                <View style={{ flexDirection: "row" }}>
+                  <ActionBtn
+                    icon="arrow-undo"
+                    onPress={() => unarchiveNote(n.id)}
+                  />
+                  <ActionBtn
+                    icon="trash"
+                    onPress={() => deleteNote(n.id)}
+                  />
+                </View>
+              </View>
+            </Card>
           ))}
+
+          {/* ---------------- CHECKLISTS ---------------- */}
           {archivedChecklists.map((c) => (
-            <View key={c.id} style={{ backgroundColor: theme.colors.surface, padding: theme.spacing.md, borderRadius: theme.radius.md, marginBottom: theme.spacing.sm, borderWidth: 1, borderColor: theme.colors.border }}>
-              <Text style={{ color: theme.colors.text, fontWeight: theme.typography.weights.semibold }}>✓ {c.title}</Text>
-            </View>
+            <Card key={c.id}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text style={{ color: theme.colors.text }}>
+                  ✓ {c.title}
+                </Text>
+
+                <View style={{ flexDirection: "row" }}>
+                  <ActionBtn
+                    icon="arrow-undo"
+                    onPress={() => unarchiveChecklist(c.id)}
+                  />
+                  <ActionBtn
+                    icon="trash"
+                    onPress={() => deleteChecklist(c.id)}
+                  />
+                </View>
+              </View>
+            </Card>
           ))}
+
+          {/* ---------------- IDEAS ---------------- */}
           {archivedIdeas.map((i) => (
-            <View key={i.id} style={{ backgroundColor: theme.colors.surface, padding: theme.spacing.md, borderRadius: theme.radius.md, marginBottom: theme.spacing.sm, borderWidth: 1, borderColor: theme.colors.border }}>
-              <Text style={{ color: theme.colors.text, fontWeight: theme.typography.weights.semibold }}>💡 {i.title}</Text>
-            </View>
+            <Card key={i.id}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text style={{ color: theme.colors.text }}>
+                  💡 {i.title}
+                </Text>
+
+                <View style={{ flexDirection: "row" }}>
+                  <ActionBtn
+                    icon="arrow-undo"
+                    onPress={() => unarchiveIdea(i.id)}
+                  />
+                  <ActionBtn
+                    icon="trash"
+                    onPress={() => deleteIdea(i.id)}
+                  />
+                </View>
+              </View>
+            </Card>
           ))}
         </>
       )}

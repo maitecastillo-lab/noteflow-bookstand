@@ -1,26 +1,21 @@
-# NoteFlow - Libros
+# NoteFlow
 
 ## Problema
-Los lectores no tienen una forma simple y privada de llevar el control de los libros que leen ni de recordar qué les parecieron.
+
+Muchas personas se pierden entre apps distintas para tomar notas, gestionar tareas y guardar ideas sueltas. Acaban usando notas del móvil, WhatsApp en chats con uno mismo y mil sitios diferentes, y la información se pierde o se borra por error o por cambios de movil.
 
 ## Usuario objetivo
 
-Lector que quiere una estantería digital personal en el móvil.
-Uso en el día a día: 
-    - añade un libro cuando lo empieza
-    - Lo marca como leído al terminarlo
-    - Escribe una reseña corta y organiza su biblioteca en listas a su gusto.
+Personas que necesitan organizar su día a día y quieren tener notas, tareas e ideas en un solo sitio, sin depender de la nube ni de cuentas externas.
+
+Uso en el día a día:
+- Apunta una nota rápida con texto libre.
+- Crea una lista de tareas con casillas para marcar.
+- Guarda una idea suelta con etiquetas y color.
 
 ## Funcionalidades principales
 
-- Gestión de libros: añadir, editar y eliminar libros con título, autor y estado (leyendo, leído, pendiente).
-- Reseñas: valoración de 1 a 5 estrellas y texto libre para la reseña de cada libro.
-- Listas personalizadas: agrupar libros en listas creadas por el usuario.
-- Persistencia local: todo se guarda en el dispositivo y funciona sin conexión.
-
-## Funcionalidades opcionales (futuras)
-
-- Modo oscuro y temas.
-- Etiquetas y filtros avanzados.
-- Búsqueda de libros vía API externa para autocompletar.
-- Sincronización en la nube entre dispositivos.
+- Notas: crear, editar y eliminar notas de texto.
+- Tareas: crear listas de tareas con items que se pueden marcar.
+- Ideas: notas rápidas con etiquetas y color de fondo.
+- Persistencia local: todo se guarda en el dispositivo.
