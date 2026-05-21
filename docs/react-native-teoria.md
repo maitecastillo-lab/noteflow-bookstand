@@ -1,4 +1,3 @@
-
 ## React Native vs una app nativa
 
 Una app nativa se hace con el lenguaje propio de cada sistema: Kotlin o Java para Android, Swift para iOS. Eso significa que si quieres tu app en los dos sistemas, tienes que hacerla dos veces, cada una en su lenguaje.
