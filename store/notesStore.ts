@@ -116,14 +116,49 @@ export const useNotesStore = create<NotesStore>((set, get) => ({
   // ---------------- CHECKLISTS ----------------
   addChecklist: async (checklist) => {
     try {
-      const created = await api.createNote({
-        title: checklist.title,
-        type: "checklist",
-      });
-      set((state) => ({ checklists: [...state.checklists, created as ChecklistNote] }));
+      // 1. crear checklist
+      const created =
+        await api.createNote({
+          title: checklist.title,
+
+          type: "checklist",
+        });
+
+      const createdChecklist =
+        created as ChecklistNote;
+
+      // 2. crear items reales en backend
+      const createdItems =
+        await Promise.all(
+          (checklist.items ?? []).map(
+            async (item) => {
+              return await api.createChecklistItem(
+                createdChecklist.id,
+                item.text
+              );
+            }
+          )
+        );
+
+      // 3. guardar local
+      set((state) => ({
+        checklists: [
+          ...state.checklists,
+
+          {
+            ...createdChecklist,
+
+            items: createdItems,
+          },
+        ],
+      }));
     } catch (e) {
       console.error(e);
-      set({ error: "Error al crear checklist" });
+
+      set({
+        error:
+          "Error al crear checklist",
+      });
     }
   },
 
@@ -179,10 +214,10 @@ export const useNotesStore = create<NotesStore>((set, get) => ({
           c.id !== checklistId
             ? c
             : {
-                ...c,
-                items: c.items.map((i) => (i.id === itemId ? updated : i)),
-                updatedAt: new Date(),
-              }
+              ...c,
+              items: c.items.map((i) => (i.id === itemId ? updated : i)),
+              updatedAt: new Date(),
+            }
         ),
       }));
     } catch (e) {

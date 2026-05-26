@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { View, Text, TextInput, ScrollView, Pressable, Alert, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, TextInput, ScrollView, Pressable, KeyboardAvoidingView, Platform, Modal } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useNotesStore } from "@/store/notesStore";
 import { useTheme } from "@/hooks/useTheme";
-
-const IDEA_COLORS = ["#FFD6A5", "#FDFFB6", "#CAFFBF", "#9BF6FF", "#A0C4FF", "#BDB2FF", "#FFC6FF", "#FFE4F1"];
 
 export default function IdeaDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -19,8 +17,10 @@ export default function IdeaDetailScreen() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(idea?.title ?? "");
-  const [editColor, setEditColor] = useState(idea?.color ?? IDEA_COLORS[0]);
+  const [editColor, setEditColor] = useState(idea?.color ?? "#FFD6A5");
   const [editTags, setEditTags] = useState(idea?.tags.join(", ") ?? "");
+
+  const [showDeleteSheet, setShowDeleteSheet] = useState(false);
 
   if (!idea) {
     return (
@@ -32,38 +32,33 @@ export default function IdeaDetailScreen() {
 
   const handleSave = () => {
     if (editTitle.trim().length < 3) {
-      Alert.alert("Error", "El título debe tener al menos 3 caracteres");
+      setIsEditing(false);
       return;
     }
     const tags = editTags.split(",").map((t) => t.trim()).filter((t) => t.length > 0);
-    if (tags.length === 0) {
-      Alert.alert("Error", "Añade al menos una etiqueta");
-      return;
-    }
     updateIdea(idea.id, { title: editTitle, color: editColor, tags });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setIsEditing(false);
   };
 
-  const handleDelete = () => {
-    Alert.alert("Eliminar idea", "¿Estás segura?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Eliminar",
-        style: "destructive",
-        onPress: () => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          deleteIdea(idea.id);
-          router.back();
-        },
-      },
-    ]);
+  const handleDeleteTrigger = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowDeleteSheet(true);
   };
 
+  // 🛠️ CORRECCIÓN 1: Forzar redirección directa a la lista de ideas al eliminar
+  const confirmDelete = () => {
+    setShowDeleteSheet(false);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    deleteIdea(idea.id);
+    router.replace("/ideas"); 
+  };
+
+  // 🛠️ CORRECCIÓN 2: Forzar redirección directa a la lista de ideas al archivar
   const handleArchive = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     archiveIdea(idea.id);
-    router.back();
+    router.replace("/ideas");
   };
 
   return (
@@ -71,6 +66,7 @@ export default function IdeaDetailScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1, backgroundColor: theme.colors.background }}
     >
+      {/* Header con botones */}
       <View
         style={{
           flexDirection: "row",
@@ -83,7 +79,8 @@ export default function IdeaDetailScreen() {
           borderBottomColor: theme.colors.border,
         }}
       >
-        <Pressable onPress={() => router.back()}>
+        {/* 🛠️ CORRECCIÓN 3: La flecha de volver atrás ahora va directa a /ideas */}
+        <Pressable onPress={() => router.replace("/ideas")}>
           <Ionicons name="chevron-back" size={26} color={theme.colors.text} />
         </Pressable>
 
@@ -105,8 +102,8 @@ export default function IdeaDetailScreen() {
               <Pressable onPress={() => setIsEditing(true)}>
                 <Ionicons name="create-outline" size={22} color={theme.colors.text} />
               </Pressable>
-              <Pressable onPress={handleDelete}>
-                <Ionicons name="trash-outline" size={22} color="#D33" />
+              <Pressable onPress={handleDeleteTrigger}>
+                <Ionicons name="trash-outline" size={22} color="#FF6B6B" />
               </Pressable>
             </>
           )}
@@ -135,7 +132,7 @@ export default function IdeaDetailScreen() {
               Color
             </Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
-              {IDEA_COLORS.map((c) => (
+              {["#FFD6A5", "#FDFFB6", "#CAFFBF", "#9BF6FF", "#A0C4FF", "#BDB2FF", "#FFC6FF", "#FFE4F1"].map((c) => (
                 <Pressable
                   key={c}
                   onPress={() => setEditColor(c)}
@@ -210,6 +207,90 @@ export default function IdeaDetailScreen() {
           </>
         )}
       </ScrollView>
+
+      {/* PANEL BOTTOM SHEET NEGRO MODERNO SOBREPUESTO SIN OPACIDAD ATRÁS */}
+      <Modal
+        visible={showDeleteSheet}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowDeleteSheet(false)}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: "transparent", 
+          justifyContent: "flex-end",
+        }}>
+          
+          <Pressable style={{ flex: 1 }} onPress={() => setShowDeleteSheet(false)} />
+
+          <View style={{
+            backgroundColor: theme.colors.surface || "#1E1E1E", 
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            paddingHorizontal: 24,
+            paddingTop: 16,
+            paddingBottom: Platform.OS === "ios" ? 44 : 24,
+            borderTopWidth: 1,
+            borderColor: theme.colors.border,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 12,
+            elevation: 20,
+          }}>
+            
+            <View style={{
+              width: 36,
+              height: 4,
+              backgroundColor: theme.colors.border,
+              borderRadius: 2,
+              alignSelf: "center",
+              marginBottom: 24,
+            }} />
+
+            <Text style={{ color: theme.colors.text, fontSize: 18, fontWeight: "700", textAlign: "center", marginBottom: 8 }}>
+              ¿Eliminar idea?
+            </Text>
+
+            <Text style={{ color: theme.colors.textSecondary, fontSize: 14, textAlign: "center", marginBottom: 28, lineHeight: 20 }}>
+              Esta acción no se puede deshacer. Tu idea se perderá permanentemente.
+            </Text>
+
+            <View style={{ flexDirection: "row", gap: 12 }}>
+              <Pressable
+                onPress={() => setShowDeleteSheet(false)}
+                style={{
+                  flex: 1,
+                  backgroundColor: theme.colors.border,
+                  paddingVertical: 16,
+                  borderRadius: 14,
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ color: theme.colors.text, fontWeight: "600", fontSize: 15 }}>
+                  Cancelar
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={confirmDelete}
+                style={{
+                  flex: 1,
+                  backgroundColor: "#FF6B6B", 
+                  paddingVertical: 16,
+                  borderRadius: 14,
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ color: "#FFF", fontWeight: "600", fontSize: 15 }}>
+                  Eliminar
+                </Text>
+              </Pressable>
+            </View>
+
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }

@@ -1,8 +1,10 @@
 import { View, Text, ScrollView, Pressable } from "react-native";
+import { router } from "expo-router";
 import { useThemeStore } from "@/store/themeStore";
 import { useTheme } from "@/hooks/useTheme";
 import { useNotesStore } from "@/store/notesStore";
 import { Ionicons } from "@expo/vector-icons";
+import { clearToken } from "@/lib/auth";
 
 export default function SettingsScreen() {
   const theme = useTheme();
@@ -20,6 +22,16 @@ export default function SettingsScreen() {
     { value: "light", label: "Claro", icon: "sunny-outline" },
     { value: "dark", label: "Oscuro", icon: "moon-outline" },
   ];
+
+  const handleLogout = async () => {
+    await clearToken();
+    useNotesStore.setState({ notes: [], checklists: [], ideas: [] });
+    if (typeof window !== "undefined" && window.location) {
+      window.location.href = "/";
+    } else {
+      router.replace("/login");
+    }
+  };
 
   return (
     <ScrollView
@@ -101,6 +113,7 @@ export default function SettingsScreen() {
           borderRadius: 10,
           borderWidth: 1,
           borderColor: theme.colors.border,
+          marginBottom: 24,
         }}
       >
         <Text style={{ color: theme.colors.text, fontSize: 14, marginBottom: 6 }}>
@@ -113,6 +126,42 @@ export default function SettingsScreen() {
           Ideas: {ideas.length}
         </Text>
       </View>
+
+      <Text
+        style={{
+          color: theme.colors.text,
+          fontSize: 14,
+          fontWeight: "600",
+          marginBottom: 10,
+        }}
+      >
+        Cuenta
+      </Text>
+      <Pressable
+        onPress={handleLogout}
+        style={{
+          backgroundColor: theme.colors.surface,
+          padding: 16,
+          borderRadius: 10,
+          borderWidth: 1,
+          borderColor: theme.colors.border,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+        }}
+      >
+        <Ionicons name="log-out-outline" size={18} color={theme.colors.text} />
+        <Text
+          style={{
+            color: theme.colors.text,
+            fontSize: 14,
+            fontWeight: "500",
+          }}
+        >
+          Cerrar sesión
+        </Text>
+      </Pressable>
     </ScrollView>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TextInput, ScrollView, Pressable, Alert, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, TextInput, ScrollView, Pressable, KeyboardAvoidingView, Platform, Modal } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -19,6 +19,9 @@ export default function NoteDetailScreen() {
   const [editTitle, setEditTitle] = useState(note?.title ?? "");
   const [editContent, setEditContent] = useState(note?.content ?? "");
 
+  // Estado para controlar el menú de eliminación inferior
+  const [showDeleteSheet, setShowDeleteSheet] = useState(false);
+
   if (!note) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: theme.colors.background }}>
@@ -29,7 +32,7 @@ export default function NoteDetailScreen() {
 
   const handleSave = () => {
     if (editTitle.trim().length < 3) {
-      Alert.alert("Error", "El título debe tener al menos 3 caracteres");
+      setIsEditing(false);
       return;
     }
     updateNote(note.id, { title: editTitle, content: editContent });
@@ -37,19 +40,18 @@ export default function NoteDetailScreen() {
     setIsEditing(false);
   };
 
-  const handleDelete = () => {
-    Alert.alert("Eliminar nota", "¿Estás segura?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Eliminar",
-        style: "destructive",
-        onPress: () => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          deleteNote(note.id);
-          router.back();
-        },
-      },
-    ]);
+  // Abre el panel inferior
+  const handleDeleteTrigger = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowDeleteSheet(true);
+  };
+
+  // Ejecuta el borrado real de la nota
+  const confirmDelete = () => {
+    setShowDeleteSheet(false);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    deleteNote(note.id);
+    router.back();
   };
 
   const handleArchive = () => {
@@ -98,8 +100,8 @@ export default function NoteDetailScreen() {
               <Pressable onPress={() => setIsEditing(true)}>
                 <Ionicons name="create-outline" size={22} color={theme.colors.text} />
               </Pressable>
-              <Pressable onPress={handleDelete}>
-                <Ionicons name="trash-outline" size={22} color="#D33" />
+              <Pressable onPress={handleDeleteTrigger}>
+                <Ionicons name="trash-outline" size={22} color="#FF6B6B" />
               </Pressable>
             </>
           )}
@@ -153,6 +155,92 @@ export default function NoteDetailScreen() {
           </>
         )}
       </ScrollView>
+
+      {/* PANEL BOTTOM SHEET NEGRO SUPERPUESTO DIRECTAMENTE SIN CAPA OPACA */}
+      <Modal
+        visible={showDeleteSheet}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowDeleteSheet(false)}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: "transparent", // Cambiado a transparente para no oscurecer tu app negra
+          justifyContent: "flex-end",
+        }}>
+          
+          <Pressable style={{ flex: 1 }} onPress={() => setShowDeleteSheet(false)} />
+
+          <View style={{
+            backgroundColor: theme.colors.surface || "#1E1E1E", // Sigue la estética oscura de tu app
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            paddingHorizontal: 24,
+            paddingTop: 16,
+            paddingBottom: Platform.OS === "ios" ? 44 : 24,
+            borderTopWidth: 1,
+            borderColor: theme.colors.border,
+            // Sombra acentuada para crear separación real sobre el fondo nítido
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 12,
+            elevation: 20,
+          }}>
+            
+            {/* Indicador táctil superior */}
+            <View style={{
+              width: 36,
+              height: 4,
+              backgroundColor: theme.colors.border,
+              borderRadius: 2,
+              alignSelf: "center",
+              marginBottom: 24,
+            }} />
+
+            <Text style={{ color: theme.colors.text, fontSize: 18, fontWeight: "700", textAlign: "center", marginBottom: 8 }}>
+              ¿Eliminar nota?
+            </Text>
+
+            <Text style={{ color: theme.colors.textSecondary, fontSize: 14, textAlign: "center", marginBottom: 28, lineHeight: 20 }}>
+              Esta acción no se puede deshacer. Tu nota se perderá permanentemente.
+            </Text>
+
+            <View style={{ flexDirection: "row", gap: 12 }}>
+              <Pressable
+                onPress={() => setShowDeleteSheet(false)}
+                style={{
+                  flex: 1,
+                  backgroundColor: theme.colors.border,
+                  paddingVertical: 16,
+                  borderRadius: 14,
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ color: theme.colors.text, fontWeight: "600", fontSize: 15 }}>
+                  Cancelar
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={confirmDelete}
+                style={{
+                  flex: 1,
+                  backgroundColor: "#FF6B6B", // Rojo minimalista suave
+                  paddingVertical: 16,
+                  borderRadius: 14,
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ color: "#FFF", fontWeight: "600", fontSize: 15 }}>
+                  Eliminar
+                </Text>
+              </Pressable>
+            </View>
+
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
